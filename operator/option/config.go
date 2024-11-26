@@ -93,6 +93,9 @@ const (
 	// per node.
 	NodeCIDRMaskSizeIPv4 = "cluster-pool-ipv4-mask-size"
 
+	// MinCandidateIndexIPv4 is the minimum candidate index for IPv4 podCIDR allocation
+	MinCandidateIndexIPv4 = "cluster-pool-ipv4-min-candidate-index"
+
 	// NodeCIDRMaskSizeIPv6 is the IPv6 podCIDR mask size that will be used
 	// per node.
 	NodeCIDRMaskSizeIPv6 = "cluster-pool-ipv6-mask-size"

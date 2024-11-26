@@ -181,6 +181,10 @@ func InitGlobalFlags(cmd *cobra.Command, vp *viper.Viper) {
 			option.EnableIPv4Name, "true"))
 	option.BindEnv(vp, operatorOption.NodeCIDRMaskSizeIPv4)
 
+	flags.Int(operatorOption.MinCandidateIndexIPv4, 0,
+		"Minimum candidate index for IPv4 podCIDR allocation")
+	option.BindEnv(vp, operatorOption.MinCandidateIndexIPv4)
+
 	flags.Bool(option.EnableIPv6Name, defaults.EnableIPv6, "Enable IPv6 support")
 	option.BindEnv(vp, option.EnableIPv6Name)
 

@@ -16,6 +16,7 @@ import (
 	"go4.org/netipx"
 
 	"github.com/cilium/cilium/pkg/lock"
+	"github.com/cilium/cilium/pkg/math"
 )
 
 // CidrSet manages a set of CIDR ranges from which blocks of IPs can
@@ -40,6 +41,8 @@ type CidrSet struct {
 	nextCandidate int
 	// used is a bitmap used to track the CIDRs allocated
 	used big.Int
+
+	minCandidateIndex int
 }
 
 const (
@@ -74,7 +77,7 @@ var (
 )
 
 // NewCIDRSet creates a new CidrSet.
-func NewCIDRSet(clusterCIDR *net.IPNet, subNetMaskSize int) (*CidrSet, error) {
+func NewCIDRSet(clusterCIDR *net.IPNet, subNetMaskSize int, minCandidateIndex) (*CidrSet, error) {
 	clusterMask := clusterCIDR.Mask
 	clusterMaskSize, bits := clusterMask.Size()
 
@@ -90,11 +93,12 @@ func NewCIDRSet(clusterCIDR *net.IPNet, subNetMaskSize int) (*CidrSet, error) {
 	}
 	maxCIDRs := 1 << uint32(subNetMaskSize-clusterMaskSize)
 	return &CidrSet{
-		clusterCIDR:     clusterCIDR,
-		nodeMask:        net.CIDRMask(subNetMaskSize, bits),
-		clusterMaskSize: clusterMaskSize,
-		maxCIDRs:        maxCIDRs,
-		nodeMaskSize:    subNetMaskSize,
+		clusterCIDR:       clusterCIDR,
+		nodeMask:          net.CIDRMask(subNetMaskSize, bits),
+		clusterMaskSize:   clusterMaskSize,
+		maxCIDRs:          maxCIDRs,
+		nodeMaskSize:      subNetMaskSize,
+		minCandidateIndex: minCandidateIndex,
 	}, nil
 }
 
@@ -167,14 +171,14 @@ func (s *CidrSet) AllocateNext() (*net.IPNet, error) {
 	}
 	candidate := s.nextCandidate
 	var i int
-	for i = 0; i < s.maxCIDRs; i++ {
+	for i = s.minCandidateIndex; i < s.maxCIDRs; i++ {
 		if s.used.Bit(candidate) == 0 {
 			break
 		}
-		candidate = (candidate + 1) % s.maxCIDRs
+		candidate = math.IntMax(s.minCandidateIndex, (candidate+1)%s.maxCIDRs)
 	}
 
-	s.nextCandidate = (candidate + 1) % s.maxCIDRs
+	s.nextCandidate = math.IntMax(s.minCandidateIndex, (candidate+1)%s.maxCIDRs)
 	s.used.SetBit(&s.used, candidate, 1)
 	s.allocatedCIDRs++
 

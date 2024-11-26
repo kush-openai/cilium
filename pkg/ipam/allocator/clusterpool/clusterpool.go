@@ -37,7 +37,7 @@ func (a *AllocatorOperator) Init(ctx context.Context) error {
 			return fmt.Errorf("%s must be provided when using ClusterPool", operatorOption.ClusterPoolIPv4CIDR)
 		}
 
-		v4Allocators, err := cidralloc.NewCIDRSets(false, operatorOption.Config.ClusterPoolIPv4CIDR, operatorOption.Config.NodeCIDRMaskSizeIPv4)
+		v4Allocators, err := cidralloc.NewCIDRSets(false, operatorOption.Config.ClusterPoolIPv4CIDR, operatorOption.Config.NodeCIDRMaskSizeIPv4, operatorOption.Config.MinCandidateIndexIPv4)
 		if err != nil {
 			return fmt.Errorf("unable to initialize IPv4 allocator: %w", err)
 		}
@@ -70,9 +70,7 @@ func (a *AllocatorOperator) Start(ctx context.Context, updater ipam.CiliumNodeGe
 		logfields.IPv6CIDRs: operatorOption.Config.ClusterPoolIPv6CIDR,
 	}).Info("Starting ClusterPool IP allocator")
 
-	var (
-		iMetrics trigger.MetricsObserver
-	)
+	var iMetrics trigger.MetricsObserver
 
 	if operatorOption.Config.EnableMetrics {
 		iMetrics = ipamMetrics.NewTriggerMetrics(metrics.Namespace, "k8s_sync")

@@ -42,7 +42,7 @@ func (e *ErrCIDRCollision) Is(target error) bool {
 	return t.cidr == e.cidr
 }
 
-func NewCIDRSets(isV6 bool, strCIDRs []string, maskSize int) ([]CIDRAllocator, error) {
+func NewCIDRSets(isV6 bool, strCIDRs []string, maskSize int, minCandidateIndex int) ([]CIDRAllocator, error) {
 	cidrAllocators := make([]CIDRAllocator, 0, len(strCIDRs))
 	for _, strCIDR := range strCIDRs {
 		addr, cidr, err := net.ParseCIDR(strCIDR)
@@ -65,7 +65,7 @@ func NewCIDRSets(isV6 bool, strCIDRs []string, maskSize int) ([]CIDRAllocator, e
 		case !isV6 && !ip.IsIPv4(addr):
 			return nil, fmt.Errorf("CIDR is not v4 family: %s", cidr)
 		}
-		cidrSet, err := cidrset.NewCIDRSet(cidr, maskSize)
+		cidrSet, err := cidrset.NewCIDRSet(cidr, maskSize, minCandidateIndex)
 		if err != nil {
 			return nil, err
 		}
